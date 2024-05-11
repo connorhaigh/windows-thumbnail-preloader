@@ -1,0 +1,17 @@
+name: Rust Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo build --release --target-dir=target --verbose
+      - uses: actions/upload-artifact@v4
+        with:
+          name: target
+          path: target/release/*.exe

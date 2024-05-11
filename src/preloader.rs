@@ -1,3 +1,5 @@
+//! Contains preloading logic.
+
 use std::{
 	error::Error,
 	fmt::{self, Display},
@@ -18,25 +20,50 @@ use windows::Win32::{
 };
 use windows_core::{w, GUID, HSTRING, PCWSTR};
 
+/// Represents the GUID of the local thumbnail cache instance.
 const LOCAL_THUMBNAIL_CACHE: GUID = GUID::from_u128(0x50ef4544_ac9f_4a8e_b21b_8a26180db13f);
 
+/// Represents the default dimensions of a thumbnail.
 const DIMENSIONS: u32 = 72;
 
+/// Represents a preload-related error.
 #[derive(Debug)]
 pub enum PreloadError {
+	/// Indicates the specified directory is invalid.
 	InvalidDirectory(io::Error),
+
+	/// Indicates that the contents of the directory could not be read.
 	FailedToReadDirectory(io::Error),
+
+	/// Indicates that COM failed to initialise.
 	FailedToInitialiseCOM(windows_core::Error),
+
+	/// Indicates that the progress dialog could not be created.
 	FailedToCreateProgressDialog(windows_core::Error),
+
+	/// Indicates that the bind context could not be created.
 	FailedToCreateBindContext(windows_core::Error),
+
+	/// Indicates that the thumbnail cache could not be created.
 	FailedToCreateThumbnailCache(windows_core::Error),
+
+	/// Indicates that a shell item for a particular file could not be created.
 	FailedToCreateShellItem(windows_core::Error),
+
+	/// Indicates that the progress dialog could not be shown.
 	FailedToShowProgressDialog(windows_core::Error),
+
+	/// Indicates that the progress dialog could not be updated.
 	FailedToUpdateProgressDialog(windows_core::Error),
+
+	/// Indicates that a thumbnail for a particular file could not be generated.
 	FailedToGenerateThumbnail(windows_core::Error),
+
+	/// Indicates that the progress dialog could not be hidden.
 	FailedToHideProgressDialog(windows_core::Error),
 }
 
+/// Represents the result of a preload operation.
 pub type PreloadResult = Result<(), PreloadError>;
 
 impl Display for PreloadError {
@@ -59,6 +86,7 @@ impl Display for PreloadError {
 
 impl Error for PreloadError {}
 
+/// Attempts to preload the specified directory.
 pub fn preload<T>(dir: T) -> PreloadResult
 where
 	T: AsRef<Path>,
@@ -162,6 +190,7 @@ where
 	Ok(())
 }
 
+/// Attempts to retrieve a thumbnail for the specified path from the specified thumbnail cache.
 fn generate<T>(bind_ctx: &IBindCtx, thumb_cache: &IThumbnailCache, path: T) -> Result<(), PreloadError>
 where
 	T: AsRef<Path>,
